@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>当前时间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1a1a2e;
+            overflow: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 16:9 主容器 */
+        .main-container {
+            position: relative;
+            width: 100vw;
+            aspect-ratio: 16 / 9;
+            max-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 0 40px;
+        }
+
+        /* 动态背景效果 */
+        .background-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            top: -80px;
+            left: -80px;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(45deg, #48dbfb, #0abde3);
+            bottom: -60px;
+            right: -60px;
+            animation-delay: -5s;
+        }
+
+        .shape-3 {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(45deg, #ff9ff3, #f368e0);
+            top: 30%;
+            right: 8%;
+            animation-delay: -10s;
+        }
+
+        .shape-4 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #54a0ff, #2e86de);
+            bottom: 15%;
+            left: 6%;
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            25% {
+                transform: translateY(-30px) rotate(90deg) scale(1.1);
+            }
+            50% {
+                transform: translateY(-60px) rotate(180deg) scale(1);
+            }
+            75% {
+                transform: translateY(-30px) rotate(270deg) scale(0.9);
+            }
+        }
+
+        /* 玻璃拟态卡片容器 */
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px 40px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 0 80px rgba(255, 255, 255, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex: 1;
+            max-width: 400px;
+            min-width: 280px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.2),
+                inset 0 0 80px rgba(255, 255, 255, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+
+        .card.center {
+            flex: 1.5;
+            max-width: 600px;
+            padding: 40px 50px;
+            min-height: 350px;
+        }
+
+        /* 中间卡片的时间显示更大 */
+        .card.center .time {
+            font-size: 5rem;
+            min-width: 320px;
+            letter-spacing: 6px;
+        }
+
+        .card.center .date-display {
+            font-size: 1.4rem;
+        }
+
+        .card.center .weekday {
+            font-size: 1.2rem;
+        }
+
+        .card.center .timezone {
+            font-size: 0.95rem;
+            padding: 10px 22px;
+        }
+
+        .card.center .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* 时间显示 */
+        .time-display {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .time {
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                0 0 60px rgba(255, 255, 255, 0.5);
+            letter-spacing: 4px;
+            animation: pulse 2s infinite ease-in-out;
+            font-family: 'Outfit', 'Courier New', monospace;
+            min-width: 280px;
+        }
+
+        .period {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.95;
+                transform: scale(1.02);
+            }
+        }
+
+        /* 日期显示 */
+        .date-display {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            letter-spacing: 1.5px;
+        }
+
+        /* 星期显示 */
+        .weekday {
+            font-size: 1rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 3px;
+        }
+
+        /* 时区信息 */
+        .timezone {
+            margin-top: 15px;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .timezone:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* 倒计时显示 */
+        .countdown-display {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .countdown-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s infinite ease-in-out;
+            font-family: 'Outfit', 'Courier New', monospace;
+            min-width: 200px;
+        }
+
+        .countdown-unit {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 秒钟指示器 */
+        .seconds-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .seconds-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.2);
+            }
+        }
+
+        /* 不同卡片的渐变色 */
+        .card.left .countdown-number {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card.right .countdown-number {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-container {
+                width: 95vw;
+                gap: 20px;
+            }
+
+            .card {
+                padding: 25px 30px;
+                min-width: 250px;
+            }
+
+            .card.center {
+                max-width: 550px;
+                padding: 35px 45px;
+            }
+
+            .card.center .time {
+                font-size: 4.2rem;
+                min-width: 280px;
+            }
+
+            .time {
+                font-size: 3rem;
+                min-width: 240px;
+            }
+
+            .countdown-number {
+                font-size: 2.8rem;
+                min-width: 160px;
+            }
+
+            .seconds-indicator {
+                width: 180px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+
+            .card {
+                max-width: 100%;
+                min-width: unset;
+                flex: none;
+            }
+
+            .card.center {
+                flex: none;
+                padding: 35px 45px;
+            }
+
+            .card.center .time {
+                font-size: 4rem;
+                letter-spacing: 3px;
+                min-width: 300px;
+            }
+
+            .time {
+                font-size: 3.5rem;
+                letter-spacing: 2px;
+                min-width: 260px;
+            }
+
+            .date-display {
+                font-size: 1.2rem;
+            }
+
+            .weekday {
+                font-size: 1rem;
+            }
+
+            .countdown-number {
+                font-size: 2.5rem;
+                min-width: 180px;
+            }
+
+            .countdown-unit {
+                font-size: 1.2rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .seconds-indicator {
+                width: 160px;
+            }
+
+            .shape {
+                opacity: 0.2;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px 25px;
+                border-radius: 20px;
+            }
+
+            .card.center {
+                padding: 30px 35px;
+            }
+
+            .card.center .time {
+                font-size: 3.5rem;
+                letter-spacing: 2px;
+                min-width: 260px;
+            }
+
+            .time {
+                font-size: 2.8rem;
+                letter-spacing: 1px;
+                min-width: 220px;
+            }
+
+            .date-display {
+                font-size: 1rem;
+            }
+
+            .weekday {
+                font-size: 0.9rem;
+                letter-spacing: 2px;
+            }
+
+            .countdown-number {
+                font-size: 2rem;
+                min-width: 140px;
+            }
+
+            .countdown-unit {
+                font-size: 1rem;
+            }
+
+            .card-title {
+                font-size: 0.9rem;
+            }
+
+            .seconds-indicator {
+                width: 140px;
+            }
+
+            .timezone {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 16:9 主容器 -->
+    <div class="main-container">
+        <!-- 动态背景 -->
+        <div class="background-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+
+        <!-- 左边卡片：距离复赛 -->
+        <div class="card left">
+            <div class="card-title">距离第43届复赛</div>
+            <div class="countdown-display">
+                <div class="countdown-number" id="countdown-days-competition">0</div>
+                <div class="countdown-unit">天</div>
+            </div>
+            <div class="seconds-indicator">
+                <div class="seconds-bar" id="seconds-bar-competition"></div>
+            </div>
+        </div>
+
+        <!-- 中间卡片：当前时间 -->
+        <div class="card center">
+            <div class="card-title">当前时间</div>
+
+            <div class="time-display">
+                <div class="time" id="time">00:00:00</div>
+                <div class="period" id="period">AM</div>
+            </div>
+
+            <div class="date-display" id="date">2026年3月11日</div>
+            <div class="weekday" id="weekday">星期三</div>
+
+            <div class="timezone" id="timezone">UTC+8 中国标准时间</div>
+        </div>
+
+        <!-- 右边卡片：距离刷完物理学难题集萃 -->
+        <div class="card right">
+            <div class="card-title">距离刷完物理学难题集萃</div>
+            <div class="countdown-display">
+                <div class="countdown-number" id="countdown-days-physics">0</div>
+                <div class="countdown-unit">天</div>
+            </div>
+            <div class="seconds-indicator">
+                <div class="seconds-bar" id="seconds-bar-physics"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            
+            // 获取时间组件
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // 24小时制，直接显示小时（0-23）
+            // 格式化时间，确保两位数
+            const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // 获取日期组件
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            
+            // 格式化日期
+            const formattedDate = `${year}年${month}月${day}日`;
+            
+            // 获取星期
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekday = weekdays[now.getDay()];
+            
+            // 获取时区信息
+            const timezoneOffset = -now.getTimezoneOffset() / 60;
+            const timezoneSign = timezoneOffset >= 0 ? '+' : '';
+            const formattedTimezone = `UTC${timezoneSign}${timezoneOffset}`;
+            
+            // 更新页面元素
+            document.getElementById('time').textContent = formattedTime;
+            document.getElementById('date').textContent = formattedDate;
+            document.getElementById('weekday').textContent = weekday;
+            document.getElementById('timezone').textContent = `${formattedTimezone} 中国标准时间`;
+            
+            // 更新倒计时
+            updateCountdown();
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+
+            // 目标日期1：2026年9月19日（复赛）
+            const competitionDate = new Date(2026, 8, 19); // 月份从0开始，8表示9月
+            const competitionDiff = competitionDate - now;
+
+            if (competitionDiff <= 0) {
+                document.getElementById('countdown-days-competition').textContent = '0';
+                document.getElementById('seconds-bar-competition').style.width = '0%';
+            } else {
+                const competitionDays = Math.floor(competitionDiff / (1000 * 60 * 60 * 24));
+                const competitionSeconds = Math.floor((competitionDiff % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown-days-competition').textContent = competitionDays;
+                // 更新秒数进度条
+                const competitionSecondsProgress = (competitionSeconds / 60) * 100;
+                document.getElementById('seconds-bar-competition').style.width = `${competitionSecondsProgress}%`;
+            }
+
+            // 目标日期2：2026年5月1日（刷完物理学难题集萃）
+            const physicsDate = new Date(2026, 4, 1); // 月份从0开始，4表示5月
+            const physicsDiff = physicsDate - now;
+
+            if (physicsDiff <= 0) {
+                document.getElementById('countdown-days-physics').textContent = '0';
+                document.getElementById('seconds-bar-physics').style.width = '0%';
+            } else {
+                const physicsDays = Math.floor(physicsDiff / (1000 * 60 * 60 * 24));
+                const physicsSeconds = Math.floor((physicsDiff % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown-days-physics').textContent = physicsDays;
+                // 更新秒数进度条
+                const physicsSecondsProgress = (physicsSeconds / 60) * 100;
+                document.getElementById('seconds-bar-physics').style.width = `${physicsSecondsProgress}%`;
+            }
+        }
+
+        // 立即更新一次
+        updateTime();
+        
+        // 每秒更新一次
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
