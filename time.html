@@ -62,70 +62,39 @@
             flex: 1.5;
         }
 
-        /* 动态背景效果 */
-        .background-shapes {
+        /* 流星效果 */
+        .meteor-container {
             position: absolute;
             width: 100%;
             height: 100%;
             overflow: hidden;
             z-index: 0;
+            pointer-events: none;
         }
 
-        .shape {
+        .meteor {
             position: absolute;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 20s infinite ease-in-out;
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+            opacity: 0.8;
+            filter: brightness(1.3);
+            animation: meteor-fall linear forwards;
         }
 
-        .shape-1 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
-            top: -80px;
-            left: -80px;
-            animation-delay: 0s;
-        }
-
-        .shape-2 {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(45deg, #48dbfb, #0abde3);
-            bottom: -60px;
-            right: -60px;
-            animation-delay: -5s;
-        }
-
-        .shape-3 {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(45deg, #ff9ff3, #f368e0);
-            top: 30%;
-            right: 8%;
-            animation-delay: -10s;
-        }
-
-        .shape-4 {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(45deg, #54a0ff, #2e86de);
-            bottom: 15%;
-            left: 6%;
-            animation-delay: -15s;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg) scale(1);
+        @keyframes meteor-fall {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+                opacity: 0;
             }
-            25% {
-                transform: translateY(-30px) rotate(90deg) scale(1.1);
+            10% {
+                opacity: 0.8;
             }
-            50% {
-                transform: translateY(-60px) rotate(180deg) scale(1);
+            90% {
+                opacity: 0.8;
             }
-            75% {
-                transform: translateY(-30px) rotate(270deg) scale(0.9);
+            100% {
+                opacity: 0;
             }
         }
 
@@ -1088,13 +1057,8 @@
 <body>
     <!-- 16:9 主容器 -->
     <div class="main-container">
-        <!-- 动态背景 -->
-        <div class="background-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-            <div class="shape shape-4"></div>
-        </div>
+        <!-- 流星效果 -->
+        <div class="meteor-container" id="meteor-container"></div>
 
         <!-- 主布局：3列 -->
         <div class="layout-columns">
@@ -1168,6 +1132,82 @@
     </div>
 
     <script>
+        // 流星图片列表
+        const meteorImages = [
+            '3F3F3E.webp',
+            '3F3F3F.webp',
+            '3F3F3F3F.webp',
+            '3F3F3F3E3F.webp'
+        ];
+
+        // 流星生成函数
+        function createMeteor() {
+            const container = document.getElementById('meteor-container');
+            const meteor = document.createElement('img');
+            
+            // 随机选择一张图片
+            const randomImage = meteorImages[Math.floor(Math.random() * meteorImages.length)];
+            meteor.src = randomImage;
+            meteor.className = 'meteor';
+            
+            // 随机起始位置（从左侧或顶部边缘）
+            const startSide = Math.random() > 0.5 ? 'left' : 'top';
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            let startX, startY, endX, endY;
+            
+            if (startSide === 'left') {
+                // 从左侧开始
+                startX = -35;
+                startY = Math.random() * (containerHeight * 0.7);
+                endX = containerWidth + 35;
+                endY = startY + (Math.random() - 0.5) * containerHeight * 0.5;
+            } else {
+                // 从顶部开始
+                startX = Math.random() * (containerWidth * 0.7);
+                startY = -35;
+                endX = startX + (Math.random() - 0.5) * containerWidth * 0.5;
+                endY = containerHeight + 35;
+            }
+            
+            // 设置初始位置
+            meteor.style.left = startX + 'px';
+            meteor.style.top = startY + 'px';
+            
+            // 随机动画时间（2-5秒）
+            const duration = 2 + Math.random() * 3;
+            meteor.style.animationDuration = duration + 's';
+            
+            // 添加到容器
+            container.appendChild(meteor);
+            
+            // 使用 Web Animations API 实现流星移动，加快旋转速度
+            const rotation = Math.random() * 720 + 360; // 旋转360-1080度
+            const animation = meteor.animate([
+                { transform: 'translate(0, 0) rotate(0deg)' },
+                { transform: `translate(${endX - startX}px, ${endY - startY}px) rotate(${rotation}deg)` }
+            ], {
+                duration: duration * 1000,
+                easing: 'linear'
+            });
+            
+            // 动画结束后移除元素
+            animation.onfinish = () => {
+                meteor.remove();
+            };
+        }
+
+        // 定期生成流星（每0.3-1秒）
+        function startMeteors() {
+            createMeteor();
+            const interval = 300 + Math.random() * 700;
+            setTimeout(startMeteors, interval);
+        }
+
+        // 启动流星效果
+        startMeteors();
+
         // 农历数据（1900-2100年）
         const lunarInfo = [
             0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,
