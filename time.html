@@ -62,42 +62,6 @@
             flex: 1.5;
         }
 
-        /* 流星效果 */
-        .meteor-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .meteor {
-            position: absolute;
-            width: 35px;
-            height: 35px;
-            object-fit: contain;
-            opacity: 0.8;
-            filter: brightness(1.3);
-            animation: meteor-fall linear forwards;
-        }
-
-        @keyframes meteor-fall {
-            0% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.8;
-            }
-            90% {
-                opacity: 0.8;
-            }
-            100% {
-                opacity: 0;
-            }
-        }
-
         /* 玻璃拟态卡片容器 */
         .card {
             position: relative;
@@ -1057,8 +1021,6 @@
 <body>
     <!-- 16:9 主容器 -->
     <div class="main-container">
-        <!-- 流星效果 -->
-        <div class="meteor-container" id="meteor-container"></div>
 
         <!-- 主布局：3列 -->
         <div class="layout-columns">
