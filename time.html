@@ -62,42 +62,6 @@
             flex: 1.5;
         }
 
-        /* 流星效果 */
-        .meteor-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .meteor {
-            position: absolute;
-            width: 35px;
-            height: 35px;
-            object-fit: contain;
-            opacity: 0.8;
-            filter: brightness(1.3);
-            animation: meteor-fall linear forwards;
-        }
-
-        @keyframes meteor-fall {
-            0% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.8;
-            }
-            90% {
-                opacity: 0.8;
-            }
-            100% {
-                opacity: 0;
-            }
-        }
-
         /* 玻璃拟态卡片容器 */
         .card {
             position: relative;
@@ -420,6 +384,27 @@
             font-family: 'Outfit', 'Microsoft YaHei', sans-serif;
             text-align: center;
             font-style: italic;
+        }
+
+        /* 背景渐变动画 - 30分钟周期 */
+        @keyframes bgColorChange {
+            /* 前30分钟：紫色系到蓝绿色系 */
+            0%, 45% {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            }
+            /* 后30分钟：橙红色系到暖黄色系 */
+            50%, 95% {
+                background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #ff9ff3 100%);
+            }
+            100% {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            }
+        }
+
+        /* 背景过渡平滑 */
+        .main-container {
+            animation: bgColorChange 1800s infinite ease-in-out; /* 1800秒 = 30分钟 */
+            transition: background 1s ease;
         }
 
 
@@ -1057,8 +1042,6 @@
 <body>
     <!-- 16:9 主容器 -->
     <div class="main-container">
-        <!-- 流星效果 -->
-        <div class="meteor-container" id="meteor-container"></div>
 
         <!-- 主布局：3列 -->
         <div class="layout-columns">
@@ -1138,81 +1121,28 @@
     </div>
 
     <script>
-        // 流星图片列表
-        const meteorImages = [
-            '3F3F3E.webp',
-            '3F3F3F.webp',
-            '3F3F3F3F.webp',
-            '3F3F3F3E3F.webp'
-        ];
 
-        // 流星生成函数
-        function createMeteor() {
-            const container = document.getElementById('meteor-container');
-            const meteor = document.createElement('img');
+        // 背景变色动画 - 30分钟周期（精确到分钟切换）
+        function updateBackgroundColor() {
+            const mainContainer = document.querySelector('.main-container');
+            const now = new Date();
+            const minutes = now.getMinutes();
             
-            // 随机选择一张图片
-            const randomImage = meteorImages[Math.floor(Math.random() * meteorImages.length)];
-            meteor.src = randomImage;
-            meteor.className = 'meteor';
-            
-            // 随机起始位置（从左侧或顶部边缘）
-            const startSide = Math.random() > 0.5 ? 'left' : 'top';
-            const containerWidth = container.offsetWidth;
-            const containerHeight = container.offsetHeight;
-            
-            let startX, startY, endX, endY;
-            
-            if (startSide === 'left') {
-                // 从左侧开始
-                startX = -35;
-                startY = Math.random() * (containerHeight * 0.7);
-                endX = containerWidth + 35;
-                endY = startY + (Math.random() - 0.5) * containerHeight * 0.5;
+            // 每30分钟切换一次：0-29分钟一种背景，30-59分钟另一种背景
+            if (minutes < 30) {
+                // 前30分钟：紫色梦幻渐变
+                mainContainer.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
             } else {
-                // 从顶部开始
-                startX = Math.random() * (containerWidth * 0.7);
-                startY = -35;
-                endX = startX + (Math.random() - 0.5) * containerWidth * 0.5;
-                endY = containerHeight + 35;
+                // 后30分钟：橙红暖阳渐变
+                mainContainer.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #ff9ff3 100%)';
             }
-            
-            // 设置初始位置
-            meteor.style.left = startX + 'px';
-            meteor.style.top = startY + 'px';
-            
-            // 随机动画时间（2-5秒）
-            const duration = 2 + Math.random() * 3;
-            meteor.style.animationDuration = duration + 's';
-            
-            // 添加到容器
-            container.appendChild(meteor);
-            
-            // 使用 Web Animations API 实现流星移动，加快旋转速度
-            const rotation = Math.random() * 720 + 360; // 旋转360-1080度
-            const animation = meteor.animate([
-                { transform: 'translate(0, 0) rotate(0deg)' },
-                { transform: `translate(${endX - startX}px, ${endY - startY}px) rotate(${rotation}deg)` }
-            ], {
-                duration: duration * 1000,
-                easing: 'linear'
-            });
-            
-            // 动画结束后移除元素
-            animation.onfinish = () => {
-                meteor.remove();
-            };
         }
-
-        // 定期生成流星（每0.3-1秒）
-        function startMeteors() {
-            createMeteor();
-            const interval = 300 + Math.random() * 700;
-            setTimeout(startMeteors, interval);
-        }
-
-        // 启动流星效果
-        startMeteors();
+        
+        // 初始化背景
+        updateBackgroundColor();
+        
+        // 每分钟检查一次（在分钟变化时切换）
+        setInterval(updateBackgroundColor, 1000);
 
         // 农历数据（1900-2100年）
         const lunarInfo = [
