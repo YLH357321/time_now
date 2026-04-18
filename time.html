@@ -62,12 +62,48 @@
             flex: 1.5;
         }
 
+        /* 流星效果 */
+        .meteor-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .meteor {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+            opacity: 0.8;
+            filter: brightness(1.3);
+            animation: meteor-fall linear forwards;
+        }
+
+        @keyframes meteor-fall {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
         /* 玻璃拟态卡片容器 */
         .card {
             position: relative;
             z-index: 1;
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 25px;
             padding: 30px 40px;
@@ -1021,6 +1057,8 @@
 <body>
     <!-- 16:9 主容器 -->
     <div class="main-container">
+        <!-- 流星效果 -->
+        <div class="meteor-container" id="meteor-container"></div>
 
         <!-- 主布局：3列 -->
         <div class="layout-columns">
@@ -1088,12 +1126,94 @@
         <div class="modal" id="quote-modal">
             <div class="modal-content">
                 <span class="close-btn" id="close-modal">&times;</span>
-                <p class="modal-text">我认为风俗之良劣，在乎人心之厚薄。自检举风兴，人心之凉薄极矣。——陈寅恪</p>
+                <p class="modal-text">參加考試的諸位：
+今番同赴這物理的賽場，大抵是要憑真才實學，一較高下的。考場的規矩，原是簡單，我且說與諸位聽，省得節外生枝，誤了答卷的功夫。
+進了考場，先將姓名、考號在試卷與答題卡上填寫清明了，字跡應端正些，莫要潦草。
+可帶的物件，不過黑色簽字筆、直尺圓規、計算器罷了，其餘是斷不能帶入的。
+時間永遠是流駛，不必囿於一隅苦苦糾纏，先揀會做的細細思慮，橫豎要從容些，莫要慌了心神。
+考場之上，獨立思索為要，交頭接耳、私相傳遞的事，切莫去做，此等行事者，不過是自毀前程。「真的超級高手，敢於直面諸位，敢於正視自己的 AK。」
+物理這門道，大抵全在尋思與推算。願諸君筆下有章法，心裡有主張，不枉費平日的苦學與功夫。</p>
             </div>
         </div>
     </div>
 
     <script>
+        // 流星图片列表
+        const meteorImages = [
+            '3F3F3E.webp',
+            '3F3F3F.webp',
+            '3F3F3F3F.webp',
+            '3F3F3F3E3F.webp'
+        ];
+
+        // 流星生成函数
+        function createMeteor() {
+            const container = document.getElementById('meteor-container');
+            const meteor = document.createElement('img');
+            
+            // 随机选择一张图片
+            const randomImage = meteorImages[Math.floor(Math.random() * meteorImages.length)];
+            meteor.src = randomImage;
+            meteor.className = 'meteor';
+            
+            // 随机起始位置（从左侧或顶部边缘）
+            const startSide = Math.random() > 0.5 ? 'left' : 'top';
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            let startX, startY, endX, endY;
+            
+            if (startSide === 'left') {
+                // 从左侧开始
+                startX = -35;
+                startY = Math.random() * (containerHeight * 0.7);
+                endX = containerWidth + 35;
+                endY = startY + (Math.random() - 0.5) * containerHeight * 0.5;
+            } else {
+                // 从顶部开始
+                startX = Math.random() * (containerWidth * 0.7);
+                startY = -35;
+                endX = startX + (Math.random() - 0.5) * containerWidth * 0.5;
+                endY = containerHeight + 35;
+            }
+            
+            // 设置初始位置
+            meteor.style.left = startX + 'px';
+            meteor.style.top = startY + 'px';
+            
+            // 随机动画时间（2-5秒）
+            const duration = 2 + Math.random() * 3;
+            meteor.style.animationDuration = duration + 's';
+            
+            // 添加到容器
+            container.appendChild(meteor);
+            
+            // 使用 Web Animations API 实现流星移动，加快旋转速度
+            const rotation = Math.random() * 720 + 360; // 旋转360-1080度
+            const animation = meteor.animate([
+                { transform: 'translate(0, 0) rotate(0deg)' },
+                { transform: `translate(${endX - startX}px, ${endY - startY}px) rotate(${rotation}deg)` }
+            ], {
+                duration: duration * 1000,
+                easing: 'linear'
+            });
+            
+            // 动画结束后移除元素
+            animation.onfinish = () => {
+                meteor.remove();
+            };
+        }
+
+        // 定期生成流星（每0.3-1秒）
+        function startMeteors() {
+            createMeteor();
+            const interval = 300 + Math.random() * 700;
+            setTimeout(startMeteors, interval);
+        }
+
+        // 启动流星效果
+        startMeteors();
+
         // 农历数据（1900-2100年）
         const lunarInfo = [
             0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,
