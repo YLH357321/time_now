@@ -590,47 +590,10 @@
     </div>
 
     <script>
-        // 背景变色 - 15分钟周期，三种颜色
-        // 颜色1: 湖绿 (0-14分钟)
-        // 颜色2: 粉紫 (15-29分钟)  
-        // 颜色3: 橙红 (30-44分钟)
-        // 循环: 45-59分钟回到湖绿
         
         let targetGradientIndex = 0;
         let currentProgress = 0;
         let animationId = null;
-        
-                // 定义四种渐变
-        const gradients = [
-            {   // 湖绿渐变 (0-14分钟)
-                stops: [
-                    { pos: 0, color: { r: 44, g: 110, b: 73 } },    // #2c6e49
-                    { pos: 0.5, color: { r: 72, g: 149, b: 107 } },  // #48956b
-                    { pos: 1, color: { r: 129, g: 199, b: 132 } }    // #81c784
-                ]
-            },
-            {   // 粉紫渐变 (15-29分钟)
-                stops: [
-                    { pos: 0, color: { r: 156, g: 39, b: 176 } },    // #9c27b0
-                    { pos: 0.5, color: { r: 219, g: 112, b: 147 } },  // #db7093
-                    { pos: 1, color: { r: 255, g: 182, b: 193 } }     // #ffb6c1
-                ]
-            },
-            {   // 橙红渐变 (30-44分钟)
-                stops: [
-                    { pos: 0, color: { r: 230, g: 81, b: 0 } },       // #e65100
-                    { pos: 0.5, color: { r: 255, g: 124, b: 48 } },    // #ff7c30
-                    { pos: 1, color: { r: 255, g: 183, b: 77 } }       // #ffb74d
-                ]
-            },
-                        {   // 金银渐变 (45-59分钟)
-                stops: [
-                    { pos: 0, color: { r: 169, g: 169, b: 169 } },    // 银灰 #a9a9a9
-                    { pos: 0.5, color: { r: 212, g: 175, b: 55 } },   // 金色 #d4af37
-                    { pos: 1, color: { r: 238, g: 215, b: 100 } }     // 浅金 #eed764
-                ]
-            }
-        ];
         
         // 颜色插值函数
         function interpolateColor(color1, color2, t) {
@@ -649,13 +612,40 @@
             return `linear-gradient(135deg, ${stopStrings.join(', ')})`;
         }
         
-        // 获取当前分钟对应的渐变索引       
-            function getGradientIndexByMinute(minutes) {
-            if (minutes < 15) return 0;      // 湖绿
-            if (minutes < 30) return 1;      // 粉紫
-            if (minutes < 45) return 2;      // 橙红
-            return 3;                         //金银
-        }
+ function getRandomGradient() {
+    // 随机生成三种颜色（RGB）
+    const color1 = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255)
+    };
+    const color2 = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255)
+    };
+    const color3 = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255)
+    };
+    
+    return {
+        stops: [
+            { pos: 0, color: color1 },
+            { pos: 0.5, color: color2 },
+            { pos: 1, color: color3 }
+        ]
+    };
+}
+
+// 存储当前随机渐变
+let currentRandomGradient = getRandomGradient();
+
+// 获取当前分钟对应的渐变（10分钟周期，始终返回0，因为只有一个随机渐变）
+function getGradientIndexByMinute(minutes) {
+    return 0;  // 始终返回索引0，使用当前随机渐变
+}
         
         // 设置背景（直接设置，无动画）
         function setBackgroundDirect(index) {
@@ -721,26 +711,79 @@
         }
         
         // 根据分钟数更新背景
-        function updateBackgroundColor() {
-            const now = new Date();
-            const minutes = now.getMinutes();
-            const newTarget = getGradientIndexByMinute(minutes);
+ // 记录上次变色时的分钟段（每10分钟变化一次）
+let lastChangeSlot = null;
+
+function updateBackgroundColor() {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    
+    // 每10分钟一个时段：0-9, 10-19, 20-29, 30-39, 40-49, 50-59
+    const currentSlot = Math.floor(minutes / 10);
+    
+    // 如果进入新的10分钟时段，则更换随机颜色
+    if (currentSlot !== lastChangeSlot) {
+        lastChangeSlot = currentSlot;
+        
+        // 生成新的随机渐变
+        const newGradient = getRandomGradient();
+        
+        // 保存当前随机渐变
+        const oldGradient = currentRandomGradient;
+        currentRandomGradient = newGradient;
+        
+        // 重新定义 gradients 数组用于过渡动画
+        window.tempGradients = [oldGradient, newGradient];
+        
+        // 触发过渡动画（从索引0到索引1）
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        
+        const startProgress = 0;
+        const targetProgress = 1;
+        const duration = 10000; // 10秒过渡
+        const startTime = performance.now();
+        
+        function animateTransition(now) {
+            const elapsed = now - startTime;
+            let t = Math.min(1, elapsed / duration);
+            const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             
-            if (newTarget !== targetGradientIndex) {
-                targetGradientIndex = newTarget;
-                startTransitionTo(newTarget);
+            const progress = startProgress + (targetProgress - startProgress) * easeT;
+            
+            // 在两个渐变之间插值
+            const fromStops = window.tempGradients[0].stops;
+            const toStops = window.tempGradients[1].stops;
+            const stops = [];
+            for (let i = 0; i < fromStops.length; i++) {
+                stops.push({
+                    pos: fromStops[i].pos,
+                    color: interpolateColor(fromStops[i].color, toStops[i].color, progress)
+                });
+            }
+            const gradientStr = generateGradientString(stops);
+            document.getElementById('mainContainer').style.background = gradientStr;
+            
+            if (t < 1) {
+                animationId = requestAnimationFrame(animateTransition);
+            } else {
+                animationId = null;
+                // 动画结束，更新 currentRandomGradient 为最终渐变
+                currentRandomGradient = window.tempGradients[1];
             }
         }
         
-        // 初始化背景
-        function initBackground() {
-            const now = new Date();
-            const minutes = now.getMinutes();
-            targetGradientIndex = getGradientIndexByMinute(minutes);
-            currentProgress = targetGradientIndex;
-            const gradientStr = generateGradientString(gradients[targetGradientIndex].stops);
-            document.getElementById('mainContainer').style.background = gradientStr;
-        }
+        animationId = requestAnimationFrame(animateTransition);
+    }
+}
+        
+function initBackground() {
+    const gradientStr = generateGradientString(currentRandomGradient.stops);
+    document.getElementById('mainContainer').style.background = gradientStr;
+    currentProgress = 0;
+    targetGradientIndex = 0;
+}
         
         initBackground();
         setInterval(updateBackgroundColor, 1000);
