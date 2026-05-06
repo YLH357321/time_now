@@ -73,10 +73,10 @@
             box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 inset 0 0 80px rgba(255, 255, 255, 0.1),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
+                0 0 0 2px rgba(255, 255, 255, 0.2);
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            flex: 1;
+            flex: 10;
             max-width: 100%;
             min-height: 200px;
             display: flex;
@@ -531,7 +531,7 @@
                 </div>
 
                 <div class="card left">
-                    <div class="card-title">距离攀登&卓越还有</div>
+                    <div class="card-title">距离7月26号IPU外培还有</div>
                     <div class="countdown-display">
                         <div class="countdown-number" id="countdown-days-competition">0</div>
                         <div class="countdown-unit">天</div>
@@ -563,7 +563,7 @@
             <!-- 右列：两个倒计时 -->
             <div class="column right-column">
                 <div class="card extra-2">
-                    <div class="card-title">距离刷完物理学难题集萃</div>
+                    <div class="card-title">距离7月14号XES外培还有</div>
                     <div class="countdown-display">
                         <div class="countdown-number" id="countdown-days-extra2">0</div>
                         <div class="countdown-unit">天</div>
@@ -946,8 +946,8 @@ function initBackground() {
         function updateCountdown() {
             const now = new Date();
 
-            // 目标日期1：2027年1月1日（攀登&卓越）
-            const competitionDate = new Date(2027, 0, 1);
+            // 目标日期1：2026年7月26日（IPU）
+            const competitionDate = new Date(2026, 6, 26);
             const competitionDiff = competitionDate - now;
 
             if (competitionDiff <= 0) {
@@ -979,8 +979,8 @@ function initBackground() {
                 document.getElementById('countdown-days-extra1').textContent = competition43Days;
             }
 
-            // 目标日期4：2026年5月1日（刷完物理学难题集萃）
-            const physicsCompleteDate = new Date(2026, 4, 1);
+            // 目标日期4：2026年7月14日（XES）
+            const physicsCompleteDate = new Date(2026, 6, 14);
             const physicsCompleteDiff = physicsCompleteDate - now;
 
             if (physicsCompleteDiff <= 0) {
