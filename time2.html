@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>当前时间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1a1a2e;
+            overflow: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 背景泡泡 */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 16:9 主容器 */
+        .main-container {
+            position: relative;
+            width: 100vw;
+            aspect-ratio: 16 / 9;
+            max-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 40px;
+            z-index: 1;
+        }
+
+        /* 3列布局容器 */
+        .layout-columns {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 列容器 */
+        .column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .column.center-column {
+            flex: 1.5;
+        }
+
+        /* 玻璃拟态卡片容器 */
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 80px rgba(255, 255, 255, 0.1), 0 0 0 2px rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex: 10;
+            max-width: 100%;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), inset 0 0 80px rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+
+        .card.center {
+            flex: 1;
+            padding: 40px 50px;
+            min-height: 100%;
+        }
+
+        /* 中间卡片的时间显示更大 */
+        .card.center .time {
+            font-size: 5rem;
+            min-width: 320px;
+            letter-spacing: 6px;
+        }
+
+        .card.center .date-display {
+            font-size: 1.4rem;
+        }
+
+        .card.center .lunar-date {
+            font-size: 1.3rem;
+        }
+
+        .card.center .weekday {
+            font-size: 1.2rem;
+        }
+
+        .card.center .timezone {
+            font-size: 0.95rem;
+            padding: 10px 22px;
+        }
+
+        .card.center .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* 时间显示 */
+        .time-display {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .time {
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 60px rgba(255, 255, 255, 0.5);
+            letter-spacing: 4px;
+            animation: pulse 2s infinite ease-in-out;
+            font-family: 'Outfit', 'Courier New', monospace;
+            min-width: 280px;
+        }
+
+        .period {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.95; transform: scale(1.02); }
+        }
+
+        /* 日期显示 */
+        .date-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 8px;
+        }
+
+        .date-display {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 1.5px;
+        }
+
+        .weekday {
+            font-size: 1rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 3px;
+        }
+
+        .lunar-date {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.85);
+            letter-spacing: 2px;
+        }
+
+        .timezone {
+            margin-top: 15px;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .timezone:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* 倒计时显示 */
+        .countdown-display {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .countdown-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s infinite ease-in-out;
+            font-family: 'Outfit', 'Courier New', monospace;
+            min-width: 200px;
+        }
+
+        .countdown-unit {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .card.left .countdown-number {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card.right .countdown-number {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card.extra-1 .countdown-number {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card.extra-2 .countdown-number {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 天气模块 - 精简样式 */
+        .weather-info {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .weather-line {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+            letter-spacing: 0.5px;
+        }
+        .weather-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+        }
+
+        .hidden-button {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+        .hidden-button:hover { opacity: 0.1; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+        .modal.show { display: flex; justify-content: center; align-items: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 50px;
+            border-radius: 20px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #000; }
+        .modal-text { font-size: 1.3rem; line-height: 1.8; color: #333; text-align: center; font-style: italic; }
+
+        @media (max-width: 1200px) {
+            .main-container { padding: 15px 30px; }
+            .layout-columns { gap: 15px; }
+            .column { gap: 15px; }
+            .card { padding: 25px 30px; }
+            .card.center { padding: 35px 45px; }
+            .time { font-size: 4.2rem; min-width: 280px; }
+            .countdown-number { font-size: 2.8rem; min-width: 160px; }
+        }
+        @media (max-width: 900px) {
+            .main-container { padding: 15px; }
+            .layout-columns { flex-direction: column; gap: 15px; }
+            .column { flex-direction: row; gap: 15px; }
+            .column.center-column { flex-direction: column; }
+            .card { flex: 1; min-height: 200px; }
+            .card.center { flex: none; padding: 35px 45px; }
+            .time { font-size: 4rem; min-width: 300px; }
+            .date-display { font-size: 1.2rem; }
+            .weekday { font-size: 1rem; }
+            .lunar-date { font-size: 1.1rem; }
+            .countdown-number { font-size: 2.5rem; min-width: 180px; }
+            .countdown-unit { font-size: 1.2rem; }
+            .card-title { font-size: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .main-container { padding: 10px; }
+            .layout-columns { gap: 10px; }
+            .column { flex-direction: column; gap: 10px; }
+            .card { padding: 20px 25px; border-radius: 20px; }
+            .card.center { padding: 30px 35px; }
+            .time { font-size: 3.5rem; min-width: 260px; }
+            .date-display { font-size: 1rem; }
+            .weekday { font-size: 0.9rem; letter-spacing: 2px; }
+            .lunar-date { font-size: 0.95rem; }
+            .countdown-number { font-size: 2rem; min-width: 140px; }
+            .countdown-unit { font-size: 1rem; }
+            .card-title { font-size: 0.9rem; }
+            .timezone { font-size: 0.8rem; padding: 8px 16px; }
+            .weather-line { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container" id="mainContainer">
+        <div class="layout-columns">
+            <div class="column left-column">
+                <div class="card extra-1">
+                    <div class="card-title">距离第43届复赛</div>
+                    <div class="countdown-display">
+                        <div class="countdown-number" id="countdown-days-extra1">0</div>
+                        <div class="countdown-unit">天</div>
+                    </div>
+                </div>
+                <div class="card left">
+                    <div class="card-title">距离7月26号IPU外培还有</div>
+                    <div class="countdown-display">
+                        <div class="countdown-number" id="countdown-days-competition">0</div>
+                        <div class="countdown-unit">天</div>
+                    </div>
+                </div>
+            </div>
+            <div class="column center-column">
+                <div class="card center">
+                    <div class="card-title">当前时间</div>
+                    <div class="time-display">
+                        <div class="time" id="time">00:00:00</div>
+                        <div class="period" id="period">AM</div>
+                        <button class="hidden-button" id="quote-button" title="点击查看"></button>
+                    </div>
+                    <div class="date-row">
+                        <div class="date-display" id="date">2026年3月11日</div>
+                        <div class="lunar-date" id="lunar-date">农历日期</div>
+                    </div>
+                    <div class="weekday" id="weekday">星期三</div>
+                    <div class="timezone" id="timezone" style="cursor: pointer;">UTC+8 中国标准时间</div>
+                    <!-- 天气模块 -->
+                    <div class="weather-info" id="weather-info">
+                        <div class="weather-row">
+                            <div class="weather-line" id="weather-temp">--</div>
+                            <div class="weather-line" id="weather-desc">--</div>
+                            <div class="weather-line" id="weather-humidity">--</div>
+                        </div>
+                        <div class="weather-row">
+                            <div class="weather-line" id="weather-aqi">--</div>
+                            <div class="weather-line" id="weather-sun">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column right-column">
+                <div class="card extra-2">
+                    <div class="card-title">距离7月14号XES外培还有</div>
+                    <div class="countdown-display">
+                        <div class="countdown-number" id="countdown-days-extra2">0</div>
+                        <div class="countdown-unit">天</div>
+                    </div>
+                </div>
+                <div class="card right">
+                    <div class="card-title">距离那一天……</div>
+                    <div class="countdown-display">
+                        <div class="countdown-number" id="countdown-days-physics">0</div>
+                        <div class="countdown-unit">天</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="quote-modal">
+            <div class="modal-content">
+                <span class="close-btn" id="close-modal">&times;</span>
+                <p class="modal-text">ygg pls</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建背景泡泡
+        function createBubbles() {
+            const container = document.body;
+            const bubbleCount = 15;
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                // 随机大小
+                const size = Math.random() * 100 + 50;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                
+                // 随机位置
+                bubble.style.left = `${Math.random() * 100}vw`;
+                bubble.style.top = `${Math.random() * 100}vh`;
+                
+                // 随机动画
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                bubble.style.animation = `float ${duration}s ${delay}s infinite ease-in-out`;
+                
+                // 添加CSS动画
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes float {
+                        0% { transform: translate(0, 0) rotate(0deg); }
+                        25% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(90deg); }
+                        50% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(180deg); }
+                        75% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(270deg); }
+                        100% { transform: translate(0, 0) rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                container.appendChild(bubble);
+            }
+        }
+
+        // 页面加载完成后创建泡泡
+        window.addEventListener('load', createBubbles);
+
+        // ==================== 背景渐变（每1小时切换） ====================
+        let animationId = null, currentRandomGradient = getRandomGradient();
+        let lastChangeHour = null;
+
+        function getRandomGradient() {
+            const c1 = { r: Math.floor(Math.random()*255), g: Math.floor(Math.random()*255), b: Math.floor(Math.random()*255) };
+            const c2 = { r: Math.floor(Math.random()*255), g: Math.floor(Math.random()*255), b: Math.floor(Math.random()*255) };
+            const c3 = { r: Math.floor(Math.random()*255), g: Math.floor(Math.random()*255), b: Math.floor(Math.random()*255) };
+            return { stops: [{ pos: 0, color: c1 }, { pos: 0.5, color: c2 }, { pos: 1, color: c3 }] };
+        }
+
+        function interpolateColor(c1, c2, t) {
+            return { r: Math.round(c1.r + (c2.r-c1.r)*t), g: Math.round(c1.g + (c2.g-c1.g)*t), b: Math.round(c1.b + (c2.b-c1.b)*t) };
+        }
+
+        function generateGradientString(stops) {
+            const str = stops.map(s => `rgb(${s.color.r},${s.color.g},${s.color.b}) ${s.pos*100}%`).join(', ');
+            return `linear-gradient(135deg, ${str})`;
+        }
+
+        function updateBackgroundColor() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            if (currentHour !== lastChangeHour) {
+                lastChangeHour = currentHour;
+                const oldGradient = currentRandomGradient;
+                const newGradient = getRandomGradient();
+                currentRandomGradient = newGradient;
+                if (animationId) cancelAnimationFrame(animationId);
+                const startTime = performance.now();
+                function animate(nowTime) {
+                    const elapsed = nowTime - startTime;
+                    let t = Math.min(1, elapsed / 10000);
+                    const easeT = t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+                    const stops = [];
+                    for(let i=0; i<3; i++) {
+                        stops.push({ pos: oldGradient.stops[i].pos, color: interpolateColor(oldGradient.stops[i].color, newGradient.stops[i].color, easeT) });
+                    }
+                    document.getElementById('mainContainer').style.background = generateGradientString(stops);
+                    if(t<1) animationId = requestAnimationFrame(animate);
+                    else animationId = null;
+                }
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        setInterval(updateBackgroundColor, 1000);
+        document.getElementById('mainContainer').style.background = generateGradientString(currentRandomGradient.stops);
+
+        // ==================== 时间与农历 ====================
+        const lunarInfo = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520];
+        function getLunarDate(date) {
+            const gan=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], zhi=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], solarMonth=['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'], solarDay=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+            let offset = Math.floor((date - new Date(1900,0,31))/86400000), i=1900, temp=0;
+            for(; i<2101 && offset>0; i++) { temp = lYearDays(i); offset -= temp; }
+            if(offset<0) { offset += temp; i--; }
+            const year = i, leap = leapMonth(year);
+            let isLeap=false, m=1;
+            for(; m<13 && offset>0; m++) {
+                if(leap>0 && m===leap+1 && !isLeap) { m--; isLeap=true; temp = leapDays(year); }
+                else { temp = monthDays(year, m); }
+                if(isLeap && m===leap+1) isLeap=false;
+                offset -= temp;
+            }
+            if(offset===0 && leap>0 && m===leap+1) isLeap = !isLeap ? true : (m--, false);
+            if(offset<0) { offset += temp; m--; }
+            return `${gan[(year-4)%10]}${zhi[(year-4)%12]}年 ${isLeap?'闰'+solarMonth[m-1]:solarMonth[m-1]}${solarDay[offset]}`;
+        }
+        function lYearDays(y) { let sum=348; for(let i=0x8000;i>0x8;i>>=1) sum += (lunarInfo[y-1900]&i)?1:0; return sum+leapDays(y); }
+        function leapDays(y) { return leapMonth(y)?((lunarInfo[y-1900]&0x10000)?30:29):0; }
+        function leapMonth(y) { return lunarInfo[y-1900]&0xf; }
+        function monthDays(y,m) { return (lunarInfo[y-1900]&(0x10000>>m))?30:29; }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            document.getElementById('date').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+            document.getElementById('lunar-date').textContent = getLunarDate(now);
+            document.getElementById('weekday').textContent = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
+            const tz = -now.getTimezoneOffset()/60;
+            document.getElementById('timezone').textContent = `UTC${tz>=0?'+':''}${tz} 中国标准时间`;
+            updateCountdown();
+        }
+        function updateCountdown() {
+            const now = new Date();
+            const dates = [new Date(2026,6,26), new Date(2026,5,9), new Date(2026,8,19), new Date(2026,6,14)];
+            const ids = ['countdown-days-competition', 'countdown-days-physics', 'countdown-days-extra1', 'countdown-days-extra2'];
+            dates.forEach((d,i) => { const diff = Math.floor((d-now)/86400000); document.getElementById(ids[i]).textContent = diff>0?diff:0; });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // ==================== 天气功能（修复版） ====================
+        const weatherCodeMap = {0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'细雨',53:'细雨',55:'细雨',56:'冻雨',57:'冻雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'雪粒',80:'阵雨',81:'强阵雨',82:'暴雨',85:'阵雪',86:'强阵雪',95:'雷暴',96:'雷暴',99:'雷暴'};
+        
+        // 显示加载状态
+        function showWeatherLoading() {
+            document.getElementById('weather-temp').textContent = '温度: 加载中...';
+            document.getElementById('weather-desc').textContent = '天气: 获取中...';
+            document.getElementById('weather-humidity').textContent = '湿度: ...%';
+            document.getElementById('weather-aqi').textContent = 'AQI: ...';
+            document.getElementById('weather-sun').textContent = '日出/日落: ... / ...';
+        }
+        
+        // 显示错误信息
+        function showWeatherError(message) {
+            document.getElementById('weather-temp').textContent = '温度: --';
+            document.getElementById('weather-desc').textContent = `天气: ${message}`;
+            document.getElementById('weather-humidity').textContent = '湿度: --';
+            document.getElementById('weather-aqi').textContent = 'AQI: --';
+            document.getElementById('weather-sun').textContent = '日出/日落: -- / --';
+        }
+        
+        async function fetchWeather() {
+            try {
+                // 初始化加载状态
+                showWeatherLoading();
+                
+                const lat = 30.66, lon = 104.08; // 成都坐标
+                
+                // 构建天气API URL
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&daily=sunrise,sunset&timezone=Asia/Shanghai&forecast_days=1`;
+                
+                // 构建空气质量API URL
+                const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi&timezone=Asia/Shanghai`;
+                
+                console.log('正在获取天气数据...');
+                
+                // 并行请求天气和空气质量数据
+                const [weatherRes, aqiRes] = await Promise.all([
+                    fetch(weatherUrl),
+                    fetch(aqiUrl)
+                ]);
+                
+                // 检查响应状态
+                if (!weatherRes.ok) {
+                    throw new Error(`天气API响应错误: ${weatherRes.status}`);
+                }
+                if (!aqiRes.ok) {
+                    throw new Error(`AQI API响应错误: ${aqiRes.status}`);
+                }
+                
+                // 解析JSON数据
+                const weatherData = await weatherRes.json();
+                const aqiData = await aqiRes.json();
+                
+                // 提取当前天气数据
+                const current = weatherData.current;
+                const daily = weatherData.daily;
+                
+                // 获取温度和湿度
+                const temp = Math.round(current.temperature_2m);
+                const humidity = current.relative_humidity_2m;
+                
+                // 获取天气描述
+                const weatherCode = current.weather_code;
+                const weatherDesc = weatherCodeMap[weatherCode] || '未知';
+                
+                // 获取AQI数据
+                const aqi = Math.round(aqiData.current.european_aqi);
+                const aqiLevels = ['优','良','轻度污染','中度污染','重度污染','严重污染'];
+                const aqiIndex = Math.min(Math.floor((aqi-1)/50), 5);
+                const aqiText = aqiLevels[aqiIndex] || '未知';
+                
+                // 获取日出日落时间
+                const todayIndex = daily.time.indexOf(new Date().toISOString().split('T')[0]);
+                const sunrise = todayIndex >= 0 ? daily.sunrise[todayIndex].split('T')[1].slice(0,5) : '--:--';
+                const sunset = todayIndex >= 0 ? daily.sunset[todayIndex].split('T')[1].slice(0,5) : '--:--';
+                
+                // 更新DOM元素
+                document.getElementById('weather-temp').textContent = `温度: ${temp}°C`;
+                document.getElementById('weather-desc').textContent = `天气: ${weatherDesc}`;
+                document.getElementById('weather-humidity').textContent = `湿度: ${humidity}%`;
+                document.getElementById('weather-aqi').textContent = `AQI: ${aqi} (${aqiText})`;
+                document.getElementById('weather-sun').textContent = `日出/日落: ${sunrise} / ${sunset}`;
+                
+                console.log('天气数据获取成功:', {temp, humidity, weatherDesc, aqi, sunrise, sunset});
+            } catch (error) {
+                console.error('天气获取失败:', error);
+                showWeatherError('获取失败');
+            }
+        }
+        
+        // 页面加载完成后立即获取天气
+        window.addEventListener('load', () => {
+            showWeatherLoading();
+            fetchWeather();
+            
+            // 设置定时器，每30分钟更新一次天气
+            setInterval(fetchWeather, 30 * 60 * 1000);
+        });
+
+        // ==================== 弹窗控制 ====================
+        const modal = document.getElementById('quote-modal');
+        document.getElementById('quote-button').onclick = ()=>modal.classList.add('show');
+        document.getElementById('close-modal').onclick = ()=>modal.classList.remove('show');
+        modal.onclick = e=>{ if(e.target===modal) modal.classList.remove('show'); };
+        document.onkeydown = e=>{ if(e.key==='Escape') modal.classList.remove('show'); };
+
+        // ==================== 时区按钮音频 ====================
+        // 创建音频元素（如果存在的话）
+        let audio = null;
+        try {
+            audio = new Audio('voice1.mp3');
+        } catch(e) {
+            console.warn('无法创建音频元素:', e);
+        }
+        
+        const tzBtn = document.getElementById('timezone');
+        const playAudio = (e)=>{ 
+            e.stopPropagation(); 
+            if(audio) {
+                audio.currentTime = 0;
+                audio.play().catch(err => console.log('音频播放失败:', err));
+            } else {
+                console.log('音频文件不存在');
+            }
+        };
+        tzBtn.addEventListener('click', playAudio);
+        tzBtn.addEventListener('touchstart', playAudio);
+    </script>
+</body>
+</html>
