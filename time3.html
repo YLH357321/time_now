@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>天气时钟 · 灵动预测</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background: transparent;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 泡泡背景层 */
+        .bubble-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(6px);
+            box-shadow: inset 0 0 18px rgba(255,255,255,0.2), 0 8px 20px rgba(0,0,0,0.1);
+            animation: floatBubble 12s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes floatBubble {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
+            50% { transform: translate(30px, -20px) rotate(6deg); opacity: 0.7; }
+            100% { transform: translate(-10px, 15px) rotate(-3deg); opacity: 0.4; }
+        }
+
+        /* 主容器 16:9 自适应 */
+        .main-container {
+            position: relative;
+            width: 100vw;
+            aspect-ratio: 16 / 9;
+            max-height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 40px;
+            z-index: 2;
+            transition: background 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            background: transparent !important;
+        }
+
+        /* 3列弹性布局 */
+        .layout-columns {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 24px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .column.center-column {
+            flex: 1.6;
+        }
+
+        /* 玻璃卡片 */
+        .card {
+            background: rgba(20, 28, 40, 0.55);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 32px;
+            padding: 28px 32px;
+            box-shadow: 0 20px 42px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255,255,255,0.2);
+            text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.3s;
+            flex: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 28px 48px rgba(0, 0, 0, 0.35);
+            background: rgba(25, 34, 48, 0.65);
+        }
+
+        .card.center {
+            flex: 1;
+            padding: 36px 48px;
+            position: relative;
+        }
+
+        /* 左上角天气预测按钮 */
+        .weather-forecast-btn {
+            position: absolute;
+            top: 20px;
+            left: 24px;
+            background: rgba(255,255,245,0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,240,0.3);
+            border-radius: 60px;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .weather-forecast-btn:hover {
+            background: rgba(255,215,130,0.35);
+            transform: scale(1.02);
+            border-color: rgba(255,220,120,0.7);
+        }
+
+        /* 中央时间较大 */
+        .card.center .time {
+            font-size: 5.4rem;
+            font-weight: 700;
+            min-width: 340px;
+            letter-spacing: 8px;
+        }
+        .card.center .date-display { font-size: 1.5rem; }
+        .card.center .lunar-date { font-size: 1.35rem; }
+        .card.center .weekday { font-size: 1.25rem; }
+        .card.center .timezone { font-size: 1rem; padding: 12px 24px; margin-top: 12px; }
+
+        .time {
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            letter-spacing: 4px;
+            font-family: 'Outfit', monospace;
+        }
+
+        .date-display, .weekday, .lunar-date {
+            color: rgba(255,255,245,0.92);
+        }
+
+        .countdown-number {
+            font-size: 3.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd966, #ff9966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-family: 'Outfit', monospace;
+        }
+
+        .card.left .countdown-number { background: linear-gradient(135deg, #f9a8d4, #f97373); -webkit-background-clip: text; }
+        .card.right .countdown-number { background: linear-gradient(135deg, #6ee7ff, #3b82f6); -webkit-background-clip: text; }
+        .card.extra-1 .countdown-number { background: linear-gradient(135deg, #fed7aa, #fb923c); -webkit-background-clip: text; }
+        .card.extra-2 .countdown-number { background: linear-gradient(135deg, #a5f3fc, #2dd4bf); -webkit-background-clip: text; }
+
+        .weather-info {
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 60px;
+            padding: 8px 18px;
+            backdrop-filter: blur(4px);
+        }
+        .weather-line {
+            color: rgba(255,250,210,0.95);
+            font-weight: 400;
+        }
+
+        /* 模态窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .forecast-modal-content {
+            background: rgba(18, 26, 38, 0.95);
+            backdrop-filter: blur(24px);
+            border-radius: 48px;
+            width: 90%;
+            max-width: 950px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px 32px;
+            border: 1px solid rgba(255,215,150,0.5);
+            box-shadow: 0 30px 55px rgba(0,0,0,0.5);
+            animation: fadeSlide 0.25s ease;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: scale(0.96) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .forecast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,215,140,0.4);
+            padding-bottom: 14px;
+            margin-bottom: 24px;
+        }
+        .forecast-header h2 {
+            color: #fff5e6;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .close-modal-btn {
+            font-size: 32px;
+            font-weight: 400;
+            color: #ffdd99;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+        .close-modal-btn:hover { color: white; transform: scale(1.1); }
+        .forecast-section {
+            margin-bottom: 32px;
+        }
+        .forecast-section h3 {
+            color: #ffdd99;
+            font-weight: 500;
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+            border-left: 4px solid #ffb347;
+            padding-left: 15px;
+        }
+        .forecast-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: flex-start;
+        }
+        .forecast-card {
+            background: rgba(30, 40, 55, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 14px 18px;
+            min-width: 110px;
+            flex: 1 0 auto;
+            text-align: center;
+            transition: 0.2s;
+            border: 1px solid rgba(255,215,150,0.3);
+        }
+        .forecast-day {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #ffdd99;
+        }
+        .forecast-temp {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 8px 0;
+            color: white;
+        }
+        .forecast-desc {
+            font-size: 0.85rem;
+            color: #d1d9ff;
+        }
+        .hourly-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .hour-item {
+            background: rgba(20, 30, 44, 0.75);
+            border-radius: 32px;
+            padding: 12px 14px;
+            flex: 1;
+            min-width: 85px;
+            text-align: center;
+        }
+        .hour-time {
+            font-weight: 600;
+            color: #ffd966;
+        }
+        .hour-temp {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 6px 0;
+        }
+        .loading-forecast {
+            text-align: center;
+            padding: 40px;
+            color: #fffaec;
+        }
+        @media (max-width: 900px) {
+            .layout-columns { flex-direction: column; gap: 16px; }
+            .column { flex-direction: row; gap: 16px; flex-wrap: wrap; }
+            .column.center-column { flex-direction: column; }
+            .card.center .time { font-size: 4rem; min-width: auto; letter-spacing: 4px; }
+            .main-container { padding: 16px 20px; }
+        }
+        @media (max-width: 600px) {
+            .card.center .time { font-size: 3.2rem; }
+            .countdown-number { font-size: 2rem; }
+            .weather-forecast-btn { top: 12px; left: 16px; padding: 5px 12px; font-size: 0.7rem; }
+            .forecast-card { min-width: 85px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="bubble-bg" id="bubbleContainer"></div>
+<div class="main-container" id="mainContainer">
+    <div class="layout-columns">
+        <div class="column left-column">
+            <div class="card extra-1"><div class="card-title">距离第43届复赛</div>
+                <div class="countdown-display"><div class="countdown-number" id="countdown-days-extra1">0</div><div class="countdown-unit">天</div></div>
+            </div>
+            <div class="card left"><div class="card-title">距离7月26号IPU外培</div>
+                <div class="countdown-display"><div class="countdown-number" id="countdown-days-competition">0</div><div class="countdown-unit">天</div></div>
+            </div>
+        </div>
+        <div class="column center-column">
+            <div class="card center">
+                <button class="weather-forecast-btn" id="forecastTriggerBtn">🌤️ 7日+24h天气预测</button>
+                <div class="card-title">当前时间</div>
+                <div class="time-display"><div class="time" id="time">00:00:00</div></div>
+                <div class="date-row"><div class="date-display" id="date">2026年5月17日</div><div class="lunar-date" id="lunar-date">农历日期</div></div>
+                <div class="weekday" id="weekday">星期日</div>
+                <div class="timezone" id="timezone" style="cursor: pointer;">UTC+8 中国标准时间</div>
+                <div class="weather-info" id="weather-info">
+                    <div class="weather-line" id="weather-temp">温度: --</div>
+                    <div class="weather-line" id="weather-desc">天气: --</div>
+                    <div class="weather-line" id="weather-humidity">湿度: --</div>
+                    <div class="weather-line" id="weather-aqi">AQI: --</div>
+                    <div class="weather-line" id="weather-sun">日出/日落: --/--</div>
+                </div>
+            </div>
+        </div>
+        <div class="column right-column">
+            <div class="card extra-2"><div class="card-title">距离7月14号XES外培</div>
+                <div class="countdown-display"><div class="countdown-number" id="countdown-days-extra2">0</div><div class="countdown-unit">天</div></div>
+            </div>
+            <div class="card right"><div class="card-title">距离那一天……</div>
+                <div class="countdown-display"><div class="countdown-number" id="countdown-days-physics">0</div><div class="countdown-unit">天</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预测弹窗 -->
+<div class="modal" id="forecastModal">
+    <div class="forecast-modal-content">
+        <div class="forecast-header">
+            <h2>📋 未来七日 & 24小时逐4h天气</h2>
+            <span class="close-modal-btn" id="closeForecastModalBtn">&times;</span>
+        </div>
+        <div id="forecastDynamicContent">
+            <div class="loading-forecast">✨ 加载天气预测中，请稍候...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== 背景随机渐变（每小时切换） ====================
+let bgAnimationId = null;
+let currentBgGradient = getRandomBgGradient();
+let lastBgChangeHour = null;
+
+function getRandomBgGradient() {
+    const c1 = { r: Math.floor(Math.random() * 255), g: Math.floor(Math.random() * 255), b: Math.floor(Math.random() * 255) };
+    const c2 = { r: Math.floor(Math.random() * 255), g: Math.floor(Math.random() * 255), b: Math.floor(Math.random() * 255) };
+    const c3 = { r: Math.floor(Math.random() * 255), g: Math.floor(Math.random() * 255), b: Math.floor(Math.random() * 255) };
+    return { stops: [{ pos: 0, color: c1 }, { pos: 0.5, color: c2 }, { pos: 1, color: c3 }] };
+}
+
+function interpolateBgColor(c1, c2, t) {
+    return {
+        r: Math.round(c1.r + (c2.r - c1.r) * t),
+        g: Math.round(c1.g + (c2.g - c1.g) * t),
+        b: Math.round(c1.b + (c2.b - c1.b) * t)
+    };
+}
+
+function generateBgGradientString(stops) {
+    const str = stops.map(s => `rgb(${s.color.r}, ${s.color.g}, ${s.color.b}) ${s.pos * 100}%`).join(', ');
+    return `linear-gradient(135deg, ${str})`;
+}
+
+function updateRandomBackground() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (currentHour !== lastBgChangeHour) {
+        lastBgChangeHour = currentHour;
+        const oldGradient = currentBgGradient;
+        const newGradient = getRandomBgGradient();
+        currentBgGradient = newGradient;
+        if (bgAnimationId) cancelAnimationFrame(bgAnimationId);
+        const startTime = performance.now();
+        function animate(nowTime) {
+            const elapsed = nowTime - startTime;
+            let t = Math.min(1, elapsed / 10000);
+            const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            const stops = [];
+            for (let i = 0; i < 3; i++) {
+                stops.push({
+                    pos: oldGradient.stops[i].pos,
+                    color: interpolateBgColor(oldGradient.stops[i].color, newGradient.stops[i].color, easeT)
+                });
+            }
+            document.body.style.background = generateBgGradientString(stops);
+            if (t < 1) bgAnimationId = requestAnimationFrame(animate);
+            else bgAnimationId = null;
+        }
+        bgAnimationId = requestAnimationFrame(animate);
+    }
+}
+
+// 初始化背景并每小时检查更新
+document.body.style.background = generateBgGradientString(currentBgGradient.stops);
+setInterval(updateRandomBackground, 1000);
+    // ==================== 泡泡生成 (增加数量花纹) ====================
+    function initBubbles() {
+        const container = document.getElementById('bubbleContainer');
+        container.innerHTML = '';
+        const bubbleCount = 22;
+        for (let i = 0; i < bubbleCount; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            const size = Math.random() * 120 + 40;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`;
+            bubble.style.top = `${Math.random() * 100}vh`;
+            const duration = 14 + Math.random() * 16;
+            const delay = Math.random() * 8;
+            bubble.style.animation = `floatBubble ${duration}s ${delay}s infinite ease-in-out`;
+            bubble.style.opacity = 0.25 + Math.random() * 0.4;
+            container.appendChild(bubble);
+        }
+    }
+    window.addEventListener('load', initBubbles);
+
+    // ==================== 深色背景 + 热力偏移（气温＞30°C暖色） ====================
+    let currentTempCached = 22; // 缓存温度
+    let gradientInterval;
+    function getDeepRandomGradient(baseTemp) {
+        // 深色范围: 深蓝紫、暗绿、深灰 但保留稳重感
+        const isHot = baseTemp > 30;
+        if (isHot) {
+            // 暖热感: 深琥珀 / 暗橙褐色
+            const r1 = 80 + Math.floor(Math.random() * 50);
+            const g1 = 40 + Math.floor(Math.random() * 45);
+            const b1 = 25 + Math.floor(Math.random() * 35);
+            const r2 = 130 + Math.floor(Math.random() * 55);
+            const g2 = 55 + Math.floor(Math.random() * 45);
+            const b2 = 30 + Math.floor(Math.random() * 40);
+            return { stops: [{ pos: 0, color: { r: r1, g: g1, b: b1 } }, { pos: 1, color: { r: r2, g: g2, b: b2 } }] };
+        } else {
+            // 冷感深色: 深靛蓝, 暗蓝灰
+            const r1 = 10 + Math.random() * 35;
+            const g1 = 15 + Math.random() * 45;
+            const b1 = 45 + Math.random() * 60;
+            const r2 = 30 + Math.random() * 45;
+            const g2 = 25 + Math.random() * 50;
+            const b2 = 70 + Math.random() * 55;
+            return { stops: [{ pos: 0, color: { r: r1, g: g1, b: b1 } }, { pos: 1, color: { r: r2, g: g2, b: b2 } }] };
+        }
+    }
+    let activeGradient = getDeepRandomGradient(22);
+    let lastChangeMinute = -1;
+    function updateBackgroundByTemperature(temp) {
+        const now = new Date();
+        const currentMinute = now.getHours() * 60 + now.getMinutes();
+        if (Math.abs(currentMinute - lastChangeMinute) < 30 && lastChangeMinute !== -1) return;
+        lastChangeMinute = currentMinute;
+        const newGrad = getDeepRandomGradient(temp);
+        activeGradient = newGrad;
+        applyGradientSmooth(newGrad);
+    }
+    function applyGradientSmooth(grad) {
+        const c1 = grad.stops[0].color, c2 = grad.stops[1].color;
+        const bgStyle = `radial-gradient(circle at 30% 35%, rgb(${c1.r},${c1.g},${c1.b}), rgb(${c2.r},${c2.g},${c2.b}))`;
+        document.getElementById('mainContainer').style.background = bgStyle;
+    }
+    // 每小时或气温变动刷新背景风格
+    setInterval(() => {
+        if (currentTempCached !== undefined) {
+            updateBackgroundByTemperature(currentTempCached);
+        }
+    }, 30 * 60 * 1000);
+    
+    // ==================== 时间、农历、倒计时 ====================
+    const lunarInfo = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520];
+    function getLunarDate(date) {
+        const gan=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], zhi=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], solarMonth=['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'], solarDay=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+        let offset = Math.floor((date - new Date(1900,0,31))/86400000), i=1900, temp=0;
+        for(; i<2101 && offset>0; i++) { temp = lYearDays(i); offset -= temp; }
+        if(offset<0) { offset += temp; i--; }
+        const year = i, leap = leapMonth(year);
+        let isLeap=false, m=1;
+        for(; m<13 && offset>0; m++) { if(leap>0 && m===leap+1 && !isLeap) { m--; isLeap=true; temp = leapDays(year); } else { temp = monthDays(year, m); } if(isLeap && m===leap+1) isLeap=false; offset -= temp; }
+        if(offset===0 && leap>0 && m===leap+1) isLeap = !isLeap ? true : (m--, false);
+        if(offset<0) { offset += temp; m--; }
+        return `${gan[(year-4)%10]}${zhi[(year-4)%12]}年 ${isLeap?'闰'+solarMonth[m-1]:solarMonth[m-1]}${solarDay[offset]}`;
+    }
+    function lYearDays(y) { let sum=348; for(let i=0x8000;i>0x8;i>>=1) sum += (lunarInfo[y-1900]&i)?1:0; return sum+leapDays(y); }
+    function leapDays(y) { return leapMonth(y)?((lunarInfo[y-1900]&0x10000)?30:29):0; }
+    function leapMonth(y) { return lunarInfo[y-1900]&0xf; }
+    function monthDays(y,m) { return (lunarInfo[y-1900]&(0x10000>>m))?30:29; }
+    
+    function updateTimeAndDate() {
+        const now = new Date();
+        document.getElementById('time').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        document.getElementById('date').innerText = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+        document.getElementById('lunar-date').innerText = getLunarDate(now);
+        document.getElementById('weekday').innerText = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
+        const tz = -now.getTimezoneOffset()/60;
+        document.getElementById('timezone').innerText = `UTC${tz>=0?'+':''}${tz} 中国标准时间`;
+        updateCountdowns();
+    }
+    function updateCountdowns() {
+        const now = new Date();
+        const targets = [new Date(2026,6,26), new Date(2026,5,9), new Date(2026,8,19), new Date(2026,6,14)];
+        const ids = ['countdown-days-competition', 'countdown-days-physics', 'countdown-days-extra1', 'countdown-days-extra2'];
+        targets.forEach((d,idx) => { const diff = Math.ceil((d-now)/86400000); document.getElementById(ids[idx]).innerText = diff>0?diff:0; });
+    }
+    setInterval(updateTimeAndDate, 1000);
+    updateTimeAndDate();
+    
+    // ==================== 当前天气（每整30分钟刷新）+ 气温影响背景 ====================
+    const weatherCodeMap = {0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'细雨',53:'细雨',55:'细雨',61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',80:'阵雨',81:'强阵雨',95:'雷暴'};
+    async function fetchCurrentWeather() {
+        try {
+            const lat=30.66, lon=104.08;
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&daily=sunrise,sunset&timezone=Asia/Shanghai&forecast_days=1`;
+            const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi&timezone=Asia/Shanghai`;
+            const [weatherRes, aqiRes] = await Promise.all([fetch(weatherUrl), fetch(aqiUrl)]);
+            if(!weatherRes.ok || !aqiRes.ok) throw new Error('天气接口失败');
+            const weatherData = await weatherRes.json();
+            const aqiData = await aqiRes.json();
+            const temp = Math.round(weatherData.current.temperature_2m);
+            currentTempCached = temp;
+            updateBackgroundByTemperature(temp);
+            document.getElementById('weather-temp').innerText = `温度: ${temp}°C`;
+            document.getElementById('weather-humidity').innerHTML = `湿度: ${weatherData.current.relative_humidity_2m}%`;
+            const wCode = weatherData.current.weather_code;
+            document.getElementById('weather-desc').innerHTML = `天气: ${weatherCodeMap[wCode] || '多云'}`;
+            const aqiVal = Math.round(aqiData.current.european_aqi);
+            const aqiLv = aqiVal <= 25 ? '优' : aqiVal <= 50 ? '良' : aqiVal <= 75 ? '轻度污染' : aqiVal <= 100 ? '中度污染' : '重度污染';
+            document.getElementById('weather-aqi').innerHTML = `AQI: ${aqiVal} (${aqiLv})`;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const idx = weatherData.daily.time.indexOf(todayStr);
+            const sunrise = idx>=0 ? weatherData.daily.sunrise[idx].split('T')[1].slice(0,5) : '--';
+            const sunset = idx>=0 ? weatherData.daily.sunset[idx].split('T')[1].slice(0,5) : '--';
+            document.getElementById('weather-sun').innerHTML = `日出/日落: ${sunrise}/${sunset}`;
+        } catch(e) { console.warn(e); document.getElementById('weather-temp').innerHTML = '温度: --'; }
+    }
+    // 每整30分钟刷新 (例如 10:00, 10:30)
+    function scheduleNext30Min() {
+        const now = new Date();
+        const next = new Date(now);
+        next.setMinutes(now.getMinutes() >= 30 ? 60 : 30, 0, 0);
+        const delay = next - now;
+        setTimeout(() => { fetchCurrentWeather(); scheduleNext30Min(); }, delay);
+    }
+    fetchCurrentWeather();
+    scheduleNext30Min();
+
+    // ==================== 预测弹窗: 7天+24h(每隔4h) 动态获取 ====================
+    const modal = document.getElementById('forecastModal');
+    const triggerBtn = document.getElementById('forecastTriggerBtn');
+    const closeModalBtn = document.getElementById('closeForecastModalBtn');
+    const forecastContent = document.getElementById('forecastDynamicContent');
+    
+    async function fetchAndShowForecast() {
+        forecastContent.innerHTML = '<div class="loading-forecast">🌤️ 获取未来7日及逐4小时预报...</div>';
+        try {
+            const lat=30.66, lon=104.08;
+            // 7天每日 + 小时数据(未来24h)
+            const dailyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&timezone=Asia/Shanghai&forecast_days=7`;
+            const res = await fetch(dailyUrl);
+            if(!res.ok) throw new Error('预测获取失败');
+            const data = await res.json();
+            const daily = data.daily;
+            const hourly = data.hourly;
+            const now = new Date();
+            const currentHour = now.getHours();
+            // 未来7天渲染
+            let sevenHtml = `<div class="forecast-section"><h3>📅 未来七天天气概况</h3><div class="forecast-grid">`;
+            for(let i=1; i<=7; i++) {
+                const idx = i;
+                if(idx >= daily.time.length) break;
+                const maxT = Math.round(daily.temperature_2m_max[idx]);
+                const minT = Math.round(daily.temperature_2m_min[idx]);
+                const code = daily.weather_code[idx];
+                const desc = weatherCodeMap[code] || '晴';
+                const dateLabel = new Date(daily.time[idx]).toLocaleDateString('zh-CN', {month:'numeric', day:'numeric'});
+                sevenHtml += `<div class="forecast-card"><div class="forecast-day">${dateLabel}</div><div class="forecast-temp">${maxT}°/${minT}°</div><div class="forecast-desc">${desc}</div></div>`;
+            }
+            sevenHtml += `</div></div>`;
+            // 24小时内每隔4小时
+            let hourlyHtml = `<div class="forecast-section"><h3>⏱️ 未来24小时 (每4小时)</h3><div class="hourly-grid">`;
+            const startHour = currentHour - (currentHour % 4);
+            for(let offset=0; offset<=24; offset+=4) {
+                const targetHour = (startHour + offset) % 24;
+                let targetDate = new Date(now);
+                targetDate.setHours(targetHour, 0, 0, 0);
+                if(offset > 0 && targetHour < startHour) targetDate.setDate(targetDate.getDate()+1);
+                const timeStr = targetDate.getHours().toString().padStart(2,'0') + ':00';
+                // 在hourly数组里找匹配时间
+                let tempVal = '--', weatherDesc='--';
+                for(let h=0; h<hourly.time.length; h++) {
+                    const ht = new Date(hourly.time[h]);
+                    if(ht.toISOString().slice(0,13) === targetDate.toISOString().slice(0,13)) {
+                        tempVal = Math.round(hourly.temperature_2m[h]);
+                        const wCode = hourly.weather_code[h];
+                        weatherDesc = weatherCodeMap[wCode] || '多云';
+                        break;
+                    }
+                }
+                hourlyHtml += `<div class="hour-item"><div class="hour-time">${timeStr}</div><div class="hour-temp">${tempVal}°C</div><div class="forecast-desc">${weatherDesc}</div></div>`;
+            }
+            hourlyHtml += `</div></div>`;
+            forecastContent.innerHTML = sevenHtml + hourlyHtml;
+        } catch(err) {
+            console.error(err);
+            forecastContent.innerHTML = '<div class="loading-forecast">⚠️ 预测服务暂不可用，请稍后再试</div>';
+        }
+    }
+    triggerBtn.addEventListener('click', () => {
+        fetchAndShowForecast();
+        modal.classList.add('show');
+    });
+    closeModalBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('show'); });
+    
+    // 时区按钮音频可选
+    const tzBtn = document.getElementById('timezone');
+    let audio = null;
+    try { audio = new Audio('voice1.mp3'); } catch(e) {}
+    tzBtn.addEventListener('click', (e) => { e.stopPropagation(); if(audio) audio.play().catch(()=>{}); });
+</script>
+</body>
+</html>
