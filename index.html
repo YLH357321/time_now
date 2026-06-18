@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>实用的时间工具</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bubble-bg" id="bubbleContainer"></div>
+<a href="../index.html" class="back-home-btn" title="返回主页">端午快乐哈</a>
+<div class="main-container" id="mainContainer">
+    <div class="layout-columns">
+        <div class="column left-column">
+            <div class="card extra-1">
+                <div class="card-title">端午快乐哈</div>
+                <div class="countdown-display">
+                    <div class="countdown-number" id="countdown-days-extra1">0</div>
+                    <div class="countdown-unit">天</div>
+                </div>
+            </div>
+            <div class="card left">
+                <div class="card-title">端午快乐哈</div>
+                <div class="countdown-display">
+                    <div class="countdown-number" id="countdown-days-competition">0</div>
+                    <div class="countdown-unit">天</div>
+                </div>
+            </div>
+        </div>
+        <div class="column center-column">
+            <div class="card center">
+                <button class="weather-forecast-btn" id="forecastTriggerBtn">端午快乐哈</button>
+                <div class="card-title">端午快乐哈</div>
+                <div class="time-display"><div class="time" id="time">00:00:00</div></div>
+                <div class="date-row">
+                    <div class="date-display" id="date">2026年5月18日</div>
+                    <div class="lunar-date" id="lunar-date">农历日期</div>
+                </div>
+                <div class="weekday" id="weekday">星期日</div>
+                <div class="timezone" id="timezone" style="cursor: pointer;">端午快乐哈</div>
+                <div class="weather-info" id="weather-info">
+                    <div class="weather-line" id="weather-temp">温度: --</div>
+                    <div class="weather-line" id="weather-desc">天气: --</div>
+                    <div class="weather-line" id="weather-humidity">湿度: --</div>
+                    <div class="weather-line" id="weather-aqi">AQI: --</div>
+                    <div class="weather-line" id="weather-sun">日出/日落: --/--</div>
+                </div>
+            </div>
+        </div>
+        <div class="column right-column">
+            <div class="card extra-2">
+                <div class="card-title">端午快乐哈</div>
+                <div class="countdown-display">
+                    <div class="countdown-number" id="countdown-days-extra2">0</div>
+                    <div class="countdown-unit">天</div>
+                </div>
+            </div>
+            <div class="card right">
+                <div class="card-title">端午快乐哈</div>
+                <div class="countdown-display">
+                    <div class="countdown-number" id="countdown-days-physics">0</div>
+                    <div class="countdown-unit">天</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预测弹窗 -->
+<div class="modal" id="forecastModal">
+    <div class="forecast-modal-content">
+        <div class="forecast-header">
+            <h2>📋 未来七日 & 24小时逐4h天气</h2>
+            <span class="close-modal-btn" id="closeForecastModalBtn">&times;</span>
+        </div>
+        <div id="forecastDynamicContent">
+            <div class="loading-forecast">✨ 加载天气预测中，请稍候...</div>
+        </div>
+    </div>
+</div>
+
+<!-- 模块化 JS 文件 (所有文件放在同一目录下) -->
+<script src="lunar.js"></script>
+<script src="countdown.js"></script>
+<script src="weather.js"></script>
+<script src="background.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

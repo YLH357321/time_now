@@ -1,0 +1,429 @@
+/* ========== 全局样式 + 卡片 + 布局 + 动画 + 模态窗 ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    background: transparent;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* 泡泡背景层 */
+.bubble-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 18px rgba(255,255,255,0.2), 0 8px 20px rgba(0,0,0,0.1);
+    animation: floatBubble 12s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes floatBubble {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
+    50% { transform: translate(30px, -20px) rotate(6deg); opacity: 0.7; }
+    100% { transform: translate(-10px, 15px) rotate(-3deg); opacity: 0.4; }
+}
+
+/* 主容器 16:9 自适应 */
+.main-container {
+    position: relative;
+    width: 100vw;
+    aspect-ratio: 16 / 9;
+    max-height: 100vh;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 40px;
+    z-index: 2;
+    transition: background 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    background: transparent;
+}
+
+/* 返回主页按钮 - 左上角固定 */
+.back-home-btn {
+    position: fixed;
+    top: 20px;
+    left: 24px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 40px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: white;
+    text-decoration: none;
+    z-index: 100;
+    transition: all 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.back-home-btn:hover {
+    background: rgba(0, 0, 0, 0.65);
+    transform: translateY(-2px);
+}
+
+/* 3列弹性布局 */
+.layout-columns {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+    height: 100%;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    flex: 1;
+}
+
+.column.center-column {
+    flex: 1.6;
+}
+
+/* 玻璃卡片 - 乳白色半透明，边框2px */
+.card {
+    background: rgba(255, 248, 235, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 32px;
+    padding: 28px 32px;
+    box-shadow: 0 20px 42px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255,255,255,0.2);
+    text-align: center;
+    transition: transform 0.25s ease, box-shadow 0.3s;
+    flex: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 2px solid rgba(255, 245, 220, 0.4);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 48px rgba(0, 0, 0, 0.35);
+    background: rgba(255, 248, 235, 0.35);
+}
+
+.card.center {
+    flex: 1;
+    padding: 36px 48px;
+    position: relative;
+}
+
+/* 卡片标题 - 全部改为白色 */
+.card-title {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* 左上角天气预测按钮 */
+.weather-forecast-btn {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    background: rgba(255,255,245,0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,240,0.3);
+    border-radius: 60px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    z-index: 15;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 1px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.weather-forecast-btn:hover {
+    background: rgba(255,215,130,0.35);
+    transform: scale(1.02);
+    border-color: rgba(255,220,120,0.7);
+}
+
+/* 中央时间较大 */
+.card.center .time {
+    font-size: 5.4rem;
+    font-weight: 700;
+    min-width: 340px;
+    letter-spacing: 8px;
+    color: #ffffff;
+    text-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+.card.center .date-display { 
+    font-size: 1.5rem;
+    color: rgba(255,255,245,0.95);
+}
+.card.center .lunar-date { 
+    font-size: 1.35rem;
+    color: rgba(255,255,245,0.9);
+}
+.card.center .weekday { 
+    font-size: 1.25rem;
+    color: rgba(255,255,245,0.95);
+}
+.card.center .timezone { 
+    font-size: 1rem; 
+    padding: 12px 24px; 
+    margin-top: 12px;
+    color: rgba(255,255,245,0.85);
+}
+
+.time {
+    font-size: 3.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    letter-spacing: 4px;
+    font-family: 'Outfit', monospace;
+}
+
+.date-display, .weekday, .lunar-date {
+    color: rgba(255,255,245,0.92);
+}
+
+/* 倒计时数字 - 恢复彩色渐变样式 */
+.countdown-number {
+    font-size: 3.2rem;
+    font-weight: 700;
+    font-family: 'Outfit', monospace;
+}
+
+/* 各个卡片不同的渐变色 */
+.card.left .countdown-number {
+    background: linear-gradient(135deg, #f9a8d4, #f97373);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.card.right .countdown-number {
+    background: linear-gradient(135deg, #6ee7ff, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.card.extra-1 .countdown-number {
+    background: linear-gradient(135deg, #fed7aa, #fb923c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.card.extra-2 .countdown-number {
+    background: linear-gradient(135deg, #a5f3fc, #2dd4bf);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* 倒计时单位（"天"字）改为白色 */
+.countdown-unit {
+    color: #ffffff;
+    font-size: 1rem;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+/* 倒计时显示区域布局 */
+.countdown-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+}
+
+.weather-info {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    font-size: 0.85rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 60px;
+    padding: 8px 18px;
+    backdrop-filter: blur(4px);
+}
+.weather-line {
+    color: rgba(255,250,210,0.95);
+    font-weight: 400;
+}
+
+/* 模态窗 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+}
+.modal.show {
+    display: flex;
+}
+.forecast-modal-content {
+    background: rgba(18, 26, 38, 0.95);
+    backdrop-filter: blur(24px);
+    border-radius: 48px;
+    width: 90%;
+    max-width: 950px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px 32px;
+    border: 1px solid rgba(255,215,150,0.5);
+    box-shadow: 0 30px 55px rgba(0,0,0,0.5);
+    animation: fadeSlide 0.25s ease;
+}
+@keyframes fadeSlide {
+    from { opacity: 0; transform: scale(0.96) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.forecast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,215,140,0.4);
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+}
+.forecast-header h2 {
+    color: #fff5e6;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+.close-modal-btn {
+    font-size: 32px;
+    font-weight: 400;
+    color: #ffdd99;
+    cursor: pointer;
+    transition: 0.2s;
+    line-height: 1;
+}
+.close-modal-btn:hover { color: white; transform: scale(1.1); }
+.forecast-section {
+    margin-bottom: 32px;
+}
+.forecast-section h3 {
+    color: #ffdd99;
+    font-weight: 500;
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    border-left: 4px solid #ffb347;
+    padding-left: 15px;
+}
+.forecast-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+.forecast-card {
+    background: rgba(30, 40, 55, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 28px;
+    padding: 14px 18px;
+    min-width: 110px;
+    flex: 1 0 auto;
+    text-align: center;
+    transition: 0.2s;
+    border: 1px solid rgba(255,215,150,0.3);
+}
+.forecast-day {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #ffdd99;
+}
+.forecast-temp {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 8px 0;
+    color: white;
+}
+.forecast-desc {
+    font-size: 0.85rem;
+    color: #d1d9ff;
+}
+.hourly-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+.hour-item {
+    background: rgba(20, 30, 44, 0.75);
+    border-radius: 32px;
+    padding: 12px 14px;
+    flex: 1;
+    min-width: 85px;
+    text-align: center;
+}
+.hour-time {
+    font-weight: 600;
+    color: #ffd966;
+}
+.hour-temp {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 6px 0;
+}
+.loading-forecast {
+    text-align: center;
+    padding: 40px;
+    color: #fffaec;
+}
+
+/* 响应式 */
+@media (max-width: 900px) {
+    .layout-columns { flex-direction: column; gap: 16px; }
+    .column { flex-direction: row; gap: 16px; flex-wrap: wrap; }
+    .column.center-column { flex-direction: column; }
+    .card.center .time { font-size: 4rem; min-width: auto; letter-spacing: 4px; }
+    .main-container { padding: 16px 20px; }
+    .countdown-number { font-size: 2.6rem; }
+}
+@media (max-width: 600px) {
+    .card.center .time { font-size: 3.2rem; }
+    .countdown-number { font-size: 2.2rem; }
+    .weather-forecast-btn { top: 12px; left: 16px; padding: 5px 12px; font-size: 0.7rem; }
+    .forecast-card { min-width: 85px; padding: 10px; }
+    .back-home-btn { top: 12px; left: 16px; padding: 6px 14px; font-size: 0.75rem; }
+    .card-title { font-size: 1rem; }
+}
